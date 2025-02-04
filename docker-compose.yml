@@ -2,10 +2,14 @@ version: '3.8'
 
 services:
   telegram-bot:
-    build: .
+    build:
+      context: .
+      args:
+        USER_ID: ${UID}
+        GROUP_ID: ${GID}
     volumes:
       - ./chroma_data:/app/persist
-      - ./onnx_models:/root/.cache/chroma/onnx_models
+      - ./onnx_models:/home/appuser/.cache/chroma/onnx_models
       - ./.env:/app/.env
     ports:
       - "80:80"

@@ -50,18 +50,50 @@ TOGETHER_API_KEY=your_together_key
 WOLFRAMALPHA_APP_ID=your_wolfram_id
 ```
 
-2. Build & Run with Docker:
-```bash
-mkdir -p chroma_data onnx_models  # Create volume directories
-docker-compose up --build -d
-```
-
 ### Manual Setup (Without Docker)
 ```bash
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python main.py
+```
+
+## 🐳 Docker Installation with Proper Permissions
+
+To ensure file permissions match your host user for volume directories (`chroma_data` and `onnx_models`):
+
+### 1. Get Your User/GROUP IDs
+```bash
+# Linux/macOS
+export UID=$(id -u)
+export GID=$(id -g)
+
+# Windows (PowerShell)
+$Env:UID = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+$Env:GID = $Env:UID  # Usually same as UID on Windows
+```
+
+### 2. Create Data Directories
+```bash
+mkdir -p chroma_data onnx_models
+chmod 755 chroma_data onnx_models
+```
+
+### 3. Build & Run with User Mapping
+```bash
+docker compose build --build-arg UID=${UID} --build-arg GID=${GID}
+docker compose up -d
+```
+
+### 🔐 Why This Matters
+- Prevents permission issues in mounted volumes
+- Matches container user ID to your host user ID
+- Files created by container will be owned by your user
+
+### Verify Permissions
+```bash
+ls -ld chroma_data
+# Should show your username as owner
 ```
 
 ## 🛠 Usage
