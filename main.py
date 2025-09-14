@@ -7,18 +7,34 @@ import wolframalpha
 from memory import Memory
 from uuid import uuid4
 from langchain_together import Together
+from google import genai
 
 load_dotenv()
 
-# Initialize Together.ai client with specified parameters
-together_client = Together(
-#    model="mistralai/Mistral-7B-Instruct-v0.2",
-    model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-    max_tokens=256,
-    temperature = 0.6,
-    top_p = 0.7,
-    repetition_penalty = 1,
-)
+# Get environment variables
+llm_api = getenv('LLM_API', 'together').lower()
+ai_model = getenv('AI_MODEL')
+app_debug = getenv('APP_DEBUG', 'false').lower() == 'true'
+
+# Initialize LLM client based on platform
+if llm_api == 'google':
+    google_api_key = getenv('GOOGLE_GENERATIVE_AI_API_KEY')
+    if not google_api_key:
+        raise Exception('GOOGLE_GENERATIVE_AI_API_KEY must be set when using Google API')
+    google_client = genai.Client(api_key=google_api_key)
+    google_model = ai_model or 'gemini-2.0-flash'
+    llm_client = None
+else:
+    # Initialize Together.ai client with specified parameters
+    llm_client = Together(
+        model=ai_model or "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+        max_tokens=256,
+        temperature = 0.6,
+        top_p = 0.7,
+        repetition_penalty = 1,
+    )
+    google_client = None
+    google_model = None
 
 memory = Memory('BotMemories')
 
@@ -70,14 +86,23 @@ async def AiAgent(prompt, system_prompt="", mission=None):
     if mission:
         instruction = f"{mission_prompts[mission]} {instruction}"
 
-    messages = f"<s>[INST] {instruction} [/INST]"
     try:
-        # Use together_client to generate response
-        response = await together_client.agenerate(prompts=[messages])
-        # Extract text from the response and remove leading/trailing spaces
-        text = response.generations[0][0].text
-        text = text.strip()
-        return text  # Return only the extracted text
+        if llm_api == 'google':
+            response = google_client.models.generate_content(
+                model=google_model,
+                contents=instruction
+            )
+            text = response.text.strip()
+            if app_debug:
+                print(f"[DEBUG] Google response: {text}")
+            return text
+        else:
+            messages = f"<s>[INST] {instruction} [/INST]"
+            response = await llm_client.agenerate(prompts=[messages])
+            text = response.generations[0][0].text.strip()
+            if app_debug:
+                print(f"[DEBUG] Together response: {text}")
+            return text
     except IndexError:
         keyboard = []
         for mission in mission_prompts:
@@ -93,7 +118,8 @@ async def AiAgent(prompt, system_prompt="", mission=None):
 
 @client.on(events.NewMessage(pattern='/start'))
 async def start(event):
-    await event.respond('Hey! I am a telegram chatbot powered by Together.ai. How can I help you today?')
+    api_name = 'Google Gemini' if llm_api == 'google' else 'Together.ai'
+    await event.respond(f'Hey! I am a telegram chatbot powered by {api_name}. How can I help you today?')
 
 @client.on(events.NewMessage(pattern='/help'))
 async def help(event):
@@ -231,7 +257,7 @@ async def handler(e):
     if MEMORY:
         res = memory.find(prompt)
         if len(res) > 0 and res[0]:
-            system_prompt += " To answer the next question these data may be relevant: "
+            system_prompt += " To answer the next question this data may be relevant: "
             for i in res:
                 if len(i) > 0:
                     system_prompt += i[0]

@@ -5,8 +5,8 @@ FROM python:3.9
 RUN apt-get update && apt-get install -y gcc python3-dev
 
 # Now create user with host-mapped IDs
-ARG USER_ID
-ARG GROUP_ID
+ARG USER_ID=1000
+ARG GROUP_ID=1000
 RUN addgroup --gid ${GROUP_ID} appuser && \
     adduser --disabled-password --gecos '' --uid ${USER_ID} --gid ${GROUP_ID} appuser
 

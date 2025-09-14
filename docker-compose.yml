@@ -1,12 +1,10 @@
-version: '3.8'
-
 services:
   telegram-bot:
     build:
       context: .
       args:
-        USER_ID: ${UID}
-        GROUP_ID: ${GID}
+        USER_ID: ${UID:-1000}
+        GROUP_ID: ${GID:-1000}
     volumes:
       - ./chroma_data:/app/persist
       - ./onnx_models:/home/appuser/.cache/chroma/onnx_models
@@ -15,8 +13,12 @@ services:
       - "80:80"
     restart: unless-stopped
     environment:
+      - APP_DEBUG=${APP_DEBUG}
       - TOGETHER_API_KEY=${TOGETHER_API_KEY}
       - API_ID=${API_ID}
       - API_HASH=${API_HASH}
       - BOT_TOKEN=${BOT_TOKEN}
       - WOLFRAMALPHA_APP_ID=${WOLFRAMALPHA_APP_ID}
+      - LLM_API=${LLM_API}
+      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY}
+      - AI_MODEL=${AI_MODEL}
