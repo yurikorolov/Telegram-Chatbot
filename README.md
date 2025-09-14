@@ -11,8 +11,9 @@ A sophisticated Telegram chatbot powered by Together.ai's LLMs (Llama 3/Mistral)
 ## 🌟 Features
 
 - **LLM Backed**  
-  - Meta-Llama-3.1-8B-Instruct-Turbo & Mistral-7B
-  - Together.ai API integration
+  - Together.ai: Meta-Llama-3.1-8B-Instruct-Turbo & Mistral-7B
+  - Google: Gemini-1.5-Flash
+  - Configurable API platform
 - **Memory System**  
   - ChromaDB vector storage
   - Context-aware conversations
@@ -32,7 +33,7 @@ A sophisticated Telegram chatbot powered by Together.ai's LLMs (Llama 3/Mistral)
 - Python 3.9+
 - Docker & Docker Compose
 - Telegram API keys ([Get here](https://my.telegram.org/auth))
-- Together.ai API key ([Sign up](https://api.together.xyz/))
+- Together.ai API key ([Sign up](https://api.together.xyz/)) OR Google API key ([Get here](https://makersuite.google.com/app/apikey))
 
 ### Installation
 ```bash
@@ -46,7 +47,9 @@ cd Telegram-Chatbot
 API_ID=your_telegram_api_id
 API_HASH=your_telegram_api_hash
 BOT_TOKEN=your_bot_token
+LLM_API=google
 TOGETHER_API_KEY=your_together_key
+GOOGLE_GENERATIVE_AI_API_KEY=your_google_key
 WOLFRAMALPHA_APP_ID=your_wolfram_id
 ```
 
@@ -120,13 +123,15 @@ Bot: [Legal analysis using Llama-3 in lawyer persona...]
 ## 🔧 Configuration
 
 ### Environment Variables
-| Variable               | Required | Description                     |
-|------------------------|----------|---------------------------------|
-| `API_ID`               | Yes      | Telegram App ID                 |
-| `API_HASH`             | Yes      | Telegram App Hash               |
-| `BOT_TOKEN`            | Yes      | Telegram Bot Token              |
-| `TOGETHER_API_KEY`     | Yes      | Together.ai API Key             |
-| `WOLFRAMALPHA_APP_ID`  | No       | For math plugin functionality   |
+| Variable                        | Required | Description                     |
+|---------------------------------|----------|---------------------------------|
+| `API_ID`                        | Yes      | Telegram App ID                 |
+| `API_HASH`                      | Yes      | Telegram App Hash               |
+| `BOT_TOKEN`                     | Yes      | Telegram Bot Token              |
+| `LLM_API`                       | No       | LLM platform: `google` or `together` (default: `together`) |
+| `TOGETHER_API_KEY`              | Conditional | Together.ai API Key (required if LLM_API=together) |
+| `GOOGLE_GENERATIVE_AI_API_KEY`  | Conditional | Google API Key (required if LLM_API=google) |
+| `WOLFRAMALPHA_APP_ID`           | No       | For math plugin functionality   |
 
 ### Docker Volumes
 | Host Path             | Container Path            | Purpose               |
@@ -149,7 +154,7 @@ MIT License - See [LICENSE](LICENSE) for details
 ## 💡 Tech Stack
 
 - **Core**: Python 3.9, Telethon
-- **AI**: Together.ai, Llama-3, Mistral
+- **AI**: Together.ai (Llama-3, Mistral), Google Gemini
 - **Memory**: ChromaDB
 - **Plugins**: WolframAlpha API
 - **Infra**: Docker, Docker Compose
